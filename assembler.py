@@ -1,3 +1,10 @@
+# --------------------------------------------------------------------------
+#
+#   Author:   Aidan Ouckama
+#   Project:  Ouckah Processing Unit (Assembler)
+#
+# --------------------------------------------------------------------------
+
 opcodes = { 'NOPE': ['000', '000'],  # [NON_IMM, IMM] 
             'GYAT': ['aa0', 'aa0'],
             'YEET': ['600', '600'],
@@ -145,6 +152,45 @@ def create_add_label(address):
     label += ": "
 
     return label
+
+def build_image(filename, ramsize, rowsize, info, placeholder):
+    # create a new file
+    # handle file exists error
+    created = False
+    count = 1
+    name = filename
+    while not created:
+        try: 
+            f = open(filename, 'x')
+            created = True
+        except:
+            name = filename + f' ({count})'
+            count += 1
+
+    # add header
+    f.write(HEADER)
+
+    # add hex instructions to image file
+    for i in range(ramsize):
+
+        # check if address label is needed (every 8 instructions)
+        if i % rowsize == 0:
+            f.write('\n')
+
+            label = create_add_label(i)
+            f.write(label)
+
+        # write instruction to image (if it exists)
+        if i < len(info):
+            f.write(info[i] + " ")
+        else:
+            f.write(placeholder + " ")
+
+    # add line (cause ASM needs that idk)
+    f.write('\n')
+
+    # close the file
+    f.close()
 
 import sys
 
@@ -335,81 +381,6 @@ for i in range(len(lines)):
         print(f'Error: .text not found or instruction outside of .text on line {i + 1}. {line}')
         sys.exit(1)
     
-# build source files
-
-# create a new TEXT file
-# handle file exists error
-f_created = False
-f_count = 1
-f_name = TEXT_FILE_NAME
-while not f_created:
-    try: 
-        f = open(f_name, 'x')
-        f_created = True
-    except:
-        f_name = TEXT_FILE_NAME + f' ({f_count})'
-        f_count += 1
-
-# add header
-f.write(HEADER)
-
-# add hex instructions to image file
-for i in range(INSTRUCTION_RAM_SIZE):
-
-    # check if address label is needed (every 8 instructions)
-    if i % 8 == 0:
-        f.write('\n')
-
-        label = create_add_label(i)
-        f.write(label)
-
-    # write instruction to image (if it exists)
-    if i < len(lineinfo):
-        f.write(lineinfo[i] + " ")
-    else:
-        f.write(LINEINFO_NONE + " ")
-
-# add line (cause ASM needs that idk)
-f.write('\n')
-
-# close the file
-f.close()
-
-
-# create a new DATA file
-# handle file exists error
-f_created = False
-f_count = 1
-f_name = DATA_FILE_NAME
-while not f_created:
-    try: 
-        f = open(f_name, 'x')
-        f_created = True
-    except:
-        f_name = DATA_FILE_NAME + f' ({f_count})'
-        f_count += 1
-
-# add header
-f.write(HEADER)
-
-# add hex instructions to image file
-for i in range(DATA_RAM_SIZE):
-
-    # check if address label is needed (every 16 values)
-    if i % 16 == 0:
-        f.write('\n')
-
-        label = create_add_label(i)
-        f.write(label)
-
-    # write instruction to image (if it exists)
-    if i < len(datainfo):
-        f.write(datainfo[i] + " ")
-    else:
-        f.write(DATAINFO_NONE + " ")
-
-# add line (cause ASM needs that idk)
-f.write('\n')
-
-# close the file
-f.close()
+# build image files
+build_image(TEXT_FILE_NAME, INSTRUCTION_RAM_SIZE, INSTRUCTION_RAM_SIZE // 32, lineinfo, LINEINFO_NONE)
+build_image(DATA_FILE_NAME, DATA_RAM_SIZE, DATA_RAM_SIZE // 16, datainfo, DATAINFO_NONE)
