@@ -2,6 +2,6 @@
     a: 1
     b: 2
 .text
-    MOV O0, a
-    MOV O1, b
-    ADD O2, O0, O1
+    MOVE O0, a
+    MOVE O1, b
+    RIZZ O2, O0, O1
